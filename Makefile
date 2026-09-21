@@ -6,7 +6,7 @@ CARGS=-std=c99 -Wall -pedantic
 all: build
 	@echo 'built successfully'
 
-build: *.c *.h
+build: *.c
 	$(CC) $(CARGS) *.c
 
 clean:
