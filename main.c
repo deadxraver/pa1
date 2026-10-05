@@ -1,5 +1,7 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <errno.h>
 #include <malloc.h>
 #include <unistd.h>
@@ -8,6 +10,7 @@ int main(int argc, char* argv[]) {
   int processes;
   int* pids = NULL;
   int errcode = 0;
+  bool is_main_proc = true;
   if (argc != 3 || strcmp("-p", argv[1]) || sscanf(argv[2], "%d", &processes) != 1) {
     fprintf(stderr, "Wrong format, expected: %s -p <process count>\n", argv[0]);
     errcode = EINVAL;
@@ -28,6 +31,7 @@ int main(int argc, char* argv[]) {
   for (size_t i = 0; i < processes; ++i) {
     int p = fork();
     if (p == 0) {
+      is_main_proc = false;
       // TODO: idk some child proc stuff =)
     }
     if (p < 0) {
@@ -39,8 +43,18 @@ int main(int argc, char* argv[]) {
       pids[i] = p;
     }
   }
+
 end:
   if (pids) {
+    if (is_main_proc) {
+      for (size_t i = 0; i < processes; ++i) {
+        if (pids[i] >= 0) {
+          printf("waiting for pid %d (%d)\n", pids[i], (int)i);
+          waitpid(pids[i], NULL, 0);
+          pids[i] = -1;
+        }
+      }
+    }
     free(pids);
     pids = NULL;
   }
