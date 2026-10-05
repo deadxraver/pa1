@@ -6,6 +6,7 @@
 
 int main(int argc, char* argv[]) {
   int processes;
+  int* pids = NULL;
   int errcode = 0;
   if (argc != 3 || strcmp("-p", argv[1]) || sscanf(argv[2], "%d", &processes) != 1) {
     fprintf(stderr, "Wrong format, expected: %s -p <process count>\n", argv[0]);
@@ -17,10 +18,10 @@ int main(int argc, char* argv[]) {
     errcode = EINVAL;
     goto end;
   }
-  int* pids = (int*)malloc(sizeof(int) * processes);
+  pids = (int*)malloc(sizeof(int) * processes);
   if (NULL == pids) {
-    fprintf(stderr, "Could not alloc mem for pids array\n");
-    errcode = ENOMEM;
+    errcode = errno;
+    fprintf(stderr, "Could not alloc mem for pids array: %s\n", strerror(errcode));
     goto end;
   }
   memset(pids, -1, sizeof(*pids) * processes);
@@ -39,5 +40,9 @@ int main(int argc, char* argv[]) {
     }
   }
 end:
+  if (pids) {
+    free(pids);
+    pids = NULL;
+  }
   return errcode;
 }
