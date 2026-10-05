@@ -8,11 +8,12 @@
 
 #include "main.h"
 
+static int* pids = NULL;
+
 int main(int argc, char* argv[]) {
   int processes;
-  int* pids = NULL;
   int errcode = 0;
-  bool is_main_proc = true;
+  int id = 0;
   if (argc != 3 || strcmp("-p", argv[1]) || sscanf(argv[2], "%d", &processes) != 1) {
     fprintf(stderr, "Wrong format, expected: %s -p <process count>\n", argv[0]);
     errcode = EINVAL;
@@ -29,12 +30,15 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Could not alloc mem for pids array: %s\n", strerror(errcode));
     goto end;
   }
-  memset(pids, -1, sizeof(*pids) * processes);
-  for (size_t i = 0; i < processes; ++i) {
+  memset(pids, -1, sizeof(*pids) * (processes + 1));
+  pids[0] = getpid();
+  for (size_t i = 1; i <= processes; ++i) {
     int p = fork();
     if (p == 0) {
-      is_main_proc = false;
-      // TODO: idk some child proc stuff =)
+      id = (int)i;
+      LOG_DBG("%d: starting...\n", id);
+      // TODO: 
+      break;
     }
     if (p < 0) {
       fprintf(stderr, "Could not create process, %s\n", strerror(p));
@@ -48,10 +52,10 @@ int main(int argc, char* argv[]) {
 
 end:
   if (pids) {
-    if (is_main_proc) {
-      for (size_t i = 0; i < processes; ++i) {
+    if (id == 0) {
+      for (size_t i = 1; i <= processes; ++i) {
         if (pids[i] >= 0) {
-          LOG_DBG("waiting for pid %d (%d)\n", pids[i], (int)i);
+          LOG_DBG("%d: waiting for pid %d (%d)\n", id, pids[i], (int)i);
           waitpid(pids[i], NULL, 0);
           pids[i] = -1;
         }
@@ -60,5 +64,6 @@ end:
     free(pids);
     pids = NULL;
   }
+  LOG_DBG("%d exiting...\n", id);
   return errcode;
 }

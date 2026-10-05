@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 #ifdef DBG
-#define LOG_DBG(fmt, ...) \
-  fprintf(stderr, fmt, __VA_ARGS__);
+#define LOG_DBG(...) \
+  fprintf(stderr, __VA_ARGS__);
 #else
-#define LOG_DBG(fmt, ...)
+#define LOG_DBG(...)
 #endif
 
 #endif // !__MAIN_H
