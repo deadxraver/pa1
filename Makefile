@@ -9,5 +9,8 @@ all: build
 build: *.c
 	$(CC) $(CARGS) *.c
 
+build-dbg: *.c
+	$(CC) -DDBG $(CARGS) *.c
+
 clean:
 	rm -rf *.out

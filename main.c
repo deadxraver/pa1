@@ -6,6 +6,8 @@
 #include <malloc.h>
 #include <unistd.h>
 
+#include "main.h"
+
 int main(int argc, char* argv[]) {
   int processes;
   int* pids = NULL;
@@ -49,7 +51,7 @@ end:
     if (is_main_proc) {
       for (size_t i = 0; i < processes; ++i) {
         if (pids[i] >= 0) {
-          printf("waiting for pid %d (%d)\n", pids[i], (int)i);
+          LOG_DBG("waiting for pid %d (%d)\n", pids[i], (int)i);
           waitpid(pids[i], NULL, 0);
           pids[i] = -1;
         }
