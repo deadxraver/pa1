@@ -8,9 +8,9 @@
 
 #include "main.h"
 
-static int* pids = NULL;
-
 int main(int argc, char* argv[]) {
+  int* pids = NULL;
+  struct fd_pair* pipes = NULL;
   int processes;
   int errcode = 0;
   int id = 0;
@@ -24,13 +24,30 @@ int main(int argc, char* argv[]) {
     errcode = EINVAL;
     goto end;
   }
-  pids = (int*)malloc(sizeof(int) * processes);
+
+  pids = (int*)malloc(sizeof(*pids) * (processes + 1));
   if (NULL == pids) {
     errcode = errno;
     fprintf(stderr, "Could not alloc mem for pids array: %s\n", strerror(errcode));
     goto end;
   }
   memset(pids, -1, sizeof(*pids) * (processes + 1));
+
+  pipes = (struct fd_pair*)malloc(sizeof(*pipes) * processes);
+  if (NULL == pipes) {
+    errcode = errno;
+    fprintf(stderr, "Could not alloc mem for pipes array: %s\n", strerror(errcode));
+    goto end;
+  }
+  memset(pipes, -1, sizeof(*pipes) * processes);
+  for (size_t i = 0; i < processes; ++i) {
+    if (pipe(pipes[i].fd)) {
+      errcode = errno;
+      fprintf(stderr, "Could not open pipes, %s\n", strerror(errcode));
+      goto end;
+    }
+  }
+
   pids[0] = getpid();
   for (size_t i = 1; i <= processes; ++i) {
     int p = fork();
@@ -63,6 +80,20 @@ end:
     }
     free(pids);
     pids = NULL;
+  }
+  if (pipes) {
+    for (size_t i = 0; i < processes; ++i) {
+      if (pipes[i].fd[0] >= 0) {
+        close(pipes[i].fd[0]);
+        pipes[i].fd[0] = -1;
+      }
+      if (pipes[i].fd[1] >= 0) {
+        close(pipes[i].fd[1]);
+        pipes[i].fd[1] = -1;
+      }
+    }
+    free(pipes);
+    pipes = NULL;
   }
   LOG_DBG("%d exiting...\n", id);
   return errcode;

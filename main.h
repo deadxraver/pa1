@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+struct fd_pair {
+  int fd[2];
+};
+
 #ifdef DBG
 #define LOG_DBG(...) \
   fprintf(stderr, __VA_ARGS__);
