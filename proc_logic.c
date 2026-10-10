@@ -66,6 +66,7 @@ void cleanup(void) {
     free(pids);
     pids = NULL;
   }
+
   if (pipes) {
     for (size_t i = 0; i < processes; ++i) {
       if (pipes[i] == NULL)
@@ -109,26 +110,31 @@ int send(void* self, local_id dst, const Message* msg) {
   int fd = pipes[lid_][dst].fd[1];
   size_t sz =
     sizeof(MessageHeader) + msg->s_header.s_payload_len;
+
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
     return EINVAL;
   if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
     return E2BIG;
   if (msg->s_header.s_type > CS_RELEASE || msg->s_header.s_type < STARTED)
     return EINVAL;
-  if (write(fd, msg, sz) < sz) {
+  if (write(fd, msg, sz) < sz)
     return EIO;
-  }
+
   return 0;
 }
 
 int send_multicast(void* self, const Message* msg) {
   for (local_id i = 0; i < processes; ++i) {
+    int ret;
+
     if (i == lid_)
       continue;
-    int ret = send(self, i, msg);
+
+    ret = send(self, i, msg);
     if (ret)
       return ret;
   }
+
   return 0;
 }
 
@@ -136,6 +142,7 @@ int receive(void* self, local_id from, Message* msg) {
   (void)self;
   int fd = pipes[from][lid_].fd[0];
   size_t sz = sizeof(MessageHeader);
+
   if (read(fd, &msg->s_header, sz) < sz)
     return EIO;
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
@@ -144,8 +151,10 @@ int receive(void* self, local_id from, Message* msg) {
     return E2BIG;
   if (msg->s_header.s_type > CS_RELEASE || msg->s_header.s_type < STARTED)
     return EINVAL;
+
   sz = msg->s_header.s_payload_len;
   if (read(fd, msg->s_payload, sz) < sz)
     return EIO;
+
   return 0;
 }
