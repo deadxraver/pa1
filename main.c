@@ -10,6 +10,7 @@
 
 #include "lib/pa1.h"
 #include "proc_logic.h"
+#include "logger.h"
 
 int main(int argc, char* argv[]) {
   int processes;
@@ -60,6 +61,8 @@ int main(int argc, char* argv[]) {
         free(message);
         message = NULL;
       }
+
+      LOG_EVENT(log_done_fmt, get_lid());
       // TODO:
       //       send FINISH
       //       receive FINISH
