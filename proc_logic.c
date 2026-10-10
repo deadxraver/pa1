@@ -109,6 +109,12 @@ int send(void* self, local_id dst, const Message* msg) {
   int fd = pipes[lid_][dst].fd[1];
   size_t sz =
     sizeof(MessageHeader) + msg->s_header.s_payload_len;
+  if (msg->s_header.s_magic != MESSAGE_MAGIC)
+    return EINVAL;
+  if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
+    return E2BIG;
+  if (msg->s_header.s_type > CS_RELEASE || msg->s_header.s_type < STARTED)
+    return EINVAL;
   if (write(fd, msg, sz) < sz) {
     return EIO;
   }
