@@ -133,11 +133,11 @@ int receive(void* self, local_id from, Message* msg) {
   if (read(fd, &msg->s_header, sz) < sz)
     return EIO;
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
-    return EIO; // TODO: replace with the one about args
+    return EINVAL;
   if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
     return E2BIG;
   if (msg->s_header.s_type > CS_RELEASE || msg->s_header.s_type < STARTED)
-    return 1; // TODO: replace with something more informative
+    return EINVAL;
   sz = msg->s_header.s_payload_len;
   if (read(fd, msg->s_payload, sz) < sz)
     return EIO;
