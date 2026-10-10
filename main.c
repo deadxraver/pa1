@@ -34,8 +34,7 @@ int main(int argc, char* argv[]) {
     if (p == 0) {
       Message msg;
       char* text = "Hello!";
-      set_lid((local_id)i);
-      LOG_DBG(log_started_fmt, get_lid(), getpid(), getppid());
+      init_proc((local_id)i);
       // TODO: TIMESTAMPS!!
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);

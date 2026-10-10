@@ -9,7 +9,7 @@ void cleanup(void);
 
 int register_pid(local_id lid, int pid);
 
-void set_lid(local_id lid);
+void init_proc(local_id lid);
 
 local_id get_lid(void);
 

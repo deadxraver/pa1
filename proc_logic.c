@@ -1,5 +1,8 @@
+#define _GNU_SOURCE
+
 #include "proc_logic.h"
 
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,14 +11,43 @@
 #include <malloc.h>
 #include <unistd.h>
 
+#include "lib/common.h"
+#include "lib/pa1.h"
+
 static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;
 static local_id lid_ = 0;
+static int elogfd = -1, plogfd = -1;
+
+#ifdef DBG
+#define LOG_DBG(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define LOG_DBG(...) do {} while(0)
+#endif
+
+#define LOG_EVENT(...) \
+  do { \
+    printf(__VA_ARGS__); \
+    dprintf(elogfd, __VA_ARGS__); \
+  } while (0)
+
+#define LOG_PIPE(...) \
+  do { \
+    printf(__VA_ARGS__); \
+    dprintf(plogfd, __VA_ARGS__); \
+  } while (0)
 
 int init(int number_of_children) {
   int errcode = 0;
   processes = number_of_children + 1;
+  elogfd = open(events_log, O_RDWR | O_CREAT);
+  plogfd = open(pipes_log, O_RDWR | O_CREAT);
+
+  if (elogfd < 0 || plogfd < 0) {
+    errcode = elogfd < 0 ? -elogfd : -plogfd;
+    goto end;
+  }
 
   pids = (int*)malloc(sizeof(*pids) * processes);
   if (NULL == pids) {
@@ -53,6 +85,15 @@ end:
 }
 
 void cleanup(void) {
+  if (elogfd >= 0) {
+    close(elogfd);
+    elogfd = -1;
+  }
+  if (plogfd >= 0) {
+    close(plogfd);
+    plogfd = -1;
+  }
+
   if (pids) {
     if (lid_ == 0) {
       for (size_t i = 1; i < processes; ++i) {
@@ -95,8 +136,9 @@ int register_pid(local_id lid, int pid) {
   return 0;
 }
 
-void set_lid(local_id lid) {
+void init_proc(local_id lid) {
   lid_ = lid;
+  LOG_EVENT(log_started_fmt, lid_, getpid(), getppid());
 }
 
 local_id get_lid(void) {
