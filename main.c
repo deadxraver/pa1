@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <malloc.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "main.h"
 
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
       Message msg;
       char* text = "Hello!";
       init_proc((local_id)i);
-      // TODO: TIMESTAMPS!!
+      msg.s_header.s_local_time = time(NULL);
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = STARTED;
@@ -57,9 +58,10 @@ int main(int argc, char* argv[]) {
         }
         message[sz] = 0;
         memcpy(message, msg.s_payload, sz);
-        printf("%s\n", message);
+        LOG_DBG("received msg: %s\n", message);
         free(message);
         message = NULL;
+        LOG_DBG("timestamp in msg: %d\n", (int)msg.s_header.s_local_time);
       }
 
       LOG_EVENT(log_done_fmt, get_lid());
