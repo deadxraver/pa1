@@ -20,4 +20,4 @@ build-dbg: *.c
 	$(CC) -DDBG $(CARGS) *.c -o $(BUILD)/$(DBG_APP)
 
 clean:
-	rm -rf *.out
+	rm -rf *.out $(BUILD) *.log
