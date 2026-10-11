@@ -48,7 +48,7 @@ int init(int number_of_children) {
     }
     memset(pipes[i], -1, sizeof(*pipes[i]) * processes);
     for (size_t j = 0; j < processes; ++j) {
-      if (pipe(pipes[i][j].fd)) {
+      if (pipe2(pipes[i][j].fd, O_NONBLOCK)) {
         errcode = errno;
         goto end;
       }
@@ -134,6 +134,7 @@ int send(void* self, local_id dst, const Message* msg) {
     return EINVAL;
   if (write(fd, msg, sz) < sz)
     return EIO;
+  LOG_PIPE("%d sent %ld bytes to %d\n", (int)lid_, sz, (int)dst);
 
   return 0;
 }
@@ -157,9 +158,15 @@ int receive(void* self, local_id from, Message* msg) {
   (void)self;
   int fd = pipes[from][lid_].fd[0];
   size_t sz = sizeof(MessageHeader);
+  ssize_t read_bytes;
 
-  if (read(fd, &msg->s_header, sz) < sz)
+  do {
+    read_bytes = read(fd, &msg->s_header, sz);
+  } while (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK));
+  if (read_bytes < sz)
     return EIO;
+
+  LOG_PIPE("%d read %ld bytes from %d\n", (int)lid_, sz, (int)from);
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
     return EINVAL;
   if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
@@ -170,6 +177,7 @@ int receive(void* self, local_id from, Message* msg) {
   sz = msg->s_header.s_payload_len;
   if (read(fd, msg->s_payload, sz) < sz)
     return EIO;
+  LOG_PIPE("%d read %ld bytes from %d\n", (int)lid_, sz, (int)from);
 
   return 0;
 }
