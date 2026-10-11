@@ -178,3 +178,31 @@ int receive(void* self, local_id from, Message* msg) {
 
   return 0;
 }
+
+int receive_any(void * self, Message * msg) {
+  (void)self;
+  for (size_t i = 0; ; i = (i + 1) % processes) {
+    int fd = pipes[i][lid_].fd[0];
+    size_t sz = sizeof(MessageHeader);
+    ssize_t read_bytes = read(fd, &msg->s_header, sz);
+
+    if (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+      continue;
+    if (read_bytes < 0)
+      return errno;
+
+    if (msg->s_header.s_magic != MESSAGE_MAGIC)
+      return EINVAL;
+    if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
+      return E2BIG;
+    if (msg->s_header.s_type > CS_RELEASE || msg->s_header.s_type < STARTED)
+      return EINVAL;
+
+    sz = msg->s_header.s_payload_len;
+    if (read(fd, msg->s_payload, sz) < sz)
+      return EIO;
+
+    return 0;
+  }
+  return -1; // unreachable
+}
