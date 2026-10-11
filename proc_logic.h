@@ -1,8 +1,11 @@
 #ifndef __PROC_LOGIC_H
 #define __PROC_LOGIC_H
 
-#include "main.h"
 #include "lib/ipc.h"
+
+struct fd_pair {
+  int fd[2];
+};
 
 int init(int number_of_processes);
 void cleanup(void);

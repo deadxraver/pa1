@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include <time.h>
 
-#include "main.h"
-
 #include "lib/pa1.h"
 #include "proc_logic.h"
 #include "logger.h"
