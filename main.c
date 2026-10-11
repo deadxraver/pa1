@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
         }
         message[sz] = 0;
         memcpy(message, msg.s_payload, sz);
-        LOG_DBG("received msg: %s\n", message);
+        LOG_PIPE("%s\n", message);
         free(message);
         message = NULL;
       }
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
         }
         message[sz] = 0;
         memcpy(message, msg.s_payload, sz);
-        LOG_DBG("received msg: %s\n", message);
+        LOG_PIPE("%s\n", message);
         free(message);
         message = NULL;
       }

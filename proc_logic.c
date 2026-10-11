@@ -134,7 +134,6 @@ int send(void* self, local_id dst, const Message* msg) {
     return EINVAL;
   if (write(fd, msg, sz) < sz)
     return EIO;
-  LOG_PIPE("%d sent %ld bytes to %d\n", (int)lid_, sz, (int)dst);
 
   return 0;
 }
@@ -166,7 +165,6 @@ int receive(void* self, local_id from, Message* msg) {
   if (read_bytes < sz)
     return EIO;
 
-  LOG_PIPE("%d read %ld bytes from %d\n", (int)lid_, sz, (int)from);
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
     return EINVAL;
   if (msg->s_header.s_payload_len > MAX_PAYLOAD_LEN)
@@ -177,7 +175,6 @@ int receive(void* self, local_id from, Message* msg) {
   sz = msg->s_header.s_payload_len;
   if (read(fd, msg->s_payload, sz) < sz)
     return EIO;
-  LOG_PIPE("%d read %ld bytes from %d\n", (int)lid_, sz, (int)from);
 
   return 0;
 }
