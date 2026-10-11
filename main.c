@@ -47,7 +47,11 @@ int main(int argc, char* argv[]) {
       for (local_id i = 1; i <= processes; ++i) {
         if (i == get_lid())
           continue;
-        receive(NULL, i, &msg);
+
+        errcode = receive(NULL, i, &msg);
+        if (errcode)
+          goto end;
+
         size_t sz = msg.s_header.s_payload_len;
         char* message = (char*)malloc(sizeof(char) * sz + 1);
         if (message == NULL) {
@@ -63,9 +67,38 @@ int main(int argc, char* argv[]) {
       }
 
       LOG_EVENT(log_done_fmt, get_lid());
-      // TODO:
-      //       send FINISH
-      //       receive FINISH
+
+      text = "Bye!";
+      msg.s_header.s_local_time = time(NULL);
+      msg.s_header.s_magic = MESSAGE_MAGIC;
+      msg.s_header.s_payload_len = strlen(text);
+      msg.s_header.s_type = DONE;
+      memcpy(msg.s_payload, text, msg.s_header.s_payload_len);
+      errcode = send_multicast(NULL, &msg);
+      if (errcode)
+        goto end;
+
+      for (local_id i = 1; i <= processes; ++i) {
+        if (i == get_lid())
+          continue;
+
+        errcode = receive(NULL, i, &msg);
+        if (errcode)
+          goto end;
+
+        size_t sz = msg.s_header.s_payload_len;
+        char* message = (char*)malloc(sizeof(char) * sz + 1);
+        if (message == NULL) {
+          errcode = errno;
+          goto end;
+        }
+        message[sz] = 0;
+        memcpy(message, msg.s_payload, sz);
+        LOG_DBG("received msg: %s\n", message);
+        free(message);
+        message = NULL;
+        LOG_DBG("timestamp in msg: %d\n", (int)msg.s_header.s_local_time);
+      }
       goto end;
     }
     if (p < 0) {
