@@ -18,11 +18,11 @@ int init_logger(void) {
 }
 
 void destroy_logger(void) {
-  if (NULL == elogfd) {
+  if (NULL != elogfd) {
     fclose(elogfd);
     elogfd = NULL;
   }
-  if (NULL == plogfd) {
+  if (NULL != plogfd) {
     fclose(plogfd);
     plogfd = NULL;
   }
