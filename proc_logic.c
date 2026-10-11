@@ -16,7 +16,7 @@
 static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;
-static local_id lid_ = 0;
+static local_id lid_ = PARENT_ID;
 
 int init(int number_of_children) {
   int errcode = 0;

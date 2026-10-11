@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
   }
 
 end:
-  if (errcode != 0 && get_lid() == 0)
+  if (errcode != 0 && get_lid() == PARENT_ID)
     fprintf(stderr, "%s\n", strerror(errcode));
   cleanup();
   return errcode;
