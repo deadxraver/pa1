@@ -19,8 +19,10 @@ int main(int argc, char* argv[]) {
     errcode = EINVAL;
     goto end;
   }
-  if (processes <= 0) {
-    fprintf(stderr, "Number of processes should be positive, got: %d\n", processes);
+  if (processes <= 0 || processes > MAX_PROCESS_ID) {
+    fprintf(stderr, "Number of processes should be positive and not "
+            "greater than %d, got: %d\n", MAX_PROCESS_ID, processes);
+    processes = 0;
     errcode = EINVAL;
     goto end;
   }
