@@ -62,9 +62,8 @@ end:
 }
 
 void cleanup(void) {
-  destroy_logger();
-
   if (pids) {
+    LOG_DBG("cleaning up pids (0x%lx)\n", (unsigned long)pids);
     if (lid_ == 0) {
       for (size_t i = 1; i < processes; ++i) {
         if (pids[i] >= 0) {
@@ -79,6 +78,7 @@ void cleanup(void) {
   }
 
   if (pipes) {
+    LOG_DBG("cleaning up pipes (0x%lx)\n", (unsigned long)pipes);
     for (size_t i = 0; i < processes; ++i) {
       if (pipes[i] == NULL)
         continue;
@@ -99,6 +99,9 @@ void cleanup(void) {
     free(pipes);
     pipes = NULL;
   }
+
+  LOG_DBG("All good, destroying logger...\n");
+  destroy_logger();
 }
 
 int register_pid(local_id lid, int pid) {
