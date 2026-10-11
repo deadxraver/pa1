@@ -34,9 +34,12 @@ int main(int argc, char* argv[]) {
   for (size_t i = 1; i <= processes; ++i) {
     int p = fork();
     if (p == 0) {
+      char text[128];
       Message msg;
-      char* text = "Hello!";
       init_proc((local_id)i);
+      close_unused_pipes(get_lid());
+      snprintf(text, sizeof(text), log_started_fmt,
+               get_lid(), getpid(), getppid());
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = STARTED;
@@ -66,9 +69,10 @@ int main(int argc, char* argv[]) {
         message = NULL;
       }
 
+      LOG_EVENT(log_received_all_started_fmt, get_lid());
       LOG_EVENT(log_done_fmt, get_lid());
 
-      text = "Bye!";
+      snprintf(text, sizeof(text), log_done_fmt, get_lid());
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = DONE;
@@ -97,6 +101,8 @@ int main(int argc, char* argv[]) {
         free(message);
         message = NULL;
       }
+
+      LOG_EVENT(log_received_all_done_fmt, get_lid());
       goto end;
     }
     if (p < 0) {
@@ -107,6 +113,8 @@ int main(int argc, char* argv[]) {
       register_pid(i, p);
     }
   }
+
+  close_unused_pipes(PARENT_ID);
 
   if (get_lid() == PARENT_ID) {
     Message msg;

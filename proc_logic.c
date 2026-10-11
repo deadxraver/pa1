@@ -48,6 +48,8 @@ int init(int number_of_children) {
     }
     memset(pipes[i], -1, sizeof(*pipes[i]) * processes);
     for (size_t j = 0; j < processes; ++j) {
+      if (i == j)
+        continue;
       if (pipe2(pipes[i][j].fd, O_NONBLOCK)) {
         errcode = errno;
         goto end;
@@ -59,6 +61,27 @@ end:
   if (errcode != 0)
     cleanup();
   return errcode;
+}
+
+void close_unused_pipes(local_id lid) {
+  for (size_t i = 0; i < processes; ++i) {
+    if (pipes[i] == NULL)
+      continue;
+
+    for (size_t j = 0; j < processes; ++j) {
+      if (i == j)
+        continue;
+
+      if (lid != (local_id)i && pipes[i][j].fd[1] >= 0) {
+        close(pipes[i][j].fd[1]);
+        pipes[i][j].fd[1] = -1;
+      }
+      if (lid != (local_id)j && pipes[i][j].fd[0] >= 0) {
+        close(pipes[i][j].fd[0]);
+        pipes[i][j].fd[0] = -1;
+      }
+    }
+  }
 }
 
 void cleanup(void) {
@@ -182,7 +205,11 @@ int receive(void* self, local_id from, Message* msg) {
 int receive_any(void * self, Message * msg) {
   (void)self;
   for (size_t i = 0; ; i = (i + 1) % processes) {
+    if (i == (size_t)lid_)
+      continue;
     int fd = pipes[i][lid_].fd[0];
+    if (fd < 0)
+      continue;
     size_t sz = sizeof(MessageHeader);
     ssize_t read_bytes = read(fd, &msg->s_header, sz);
 

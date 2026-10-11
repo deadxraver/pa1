@@ -16,4 +16,6 @@ void init_proc(local_id lid);
 
 local_id get_lid(void);
 
+void close_unused_pipes(local_id lid);
+
 #endif // !__PROC_LOGIC_H
