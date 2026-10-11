@@ -108,6 +108,29 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  if (get_lid() == PARENT_ID) {
+    Message msg;
+    for (size_t j = 0; j < 2; ++j) {
+      for (size_t i = 0; i < processes; ++i) {
+        errcode = receive_any(NULL, &msg);
+        if (errcode)
+          goto end;
+
+        size_t sz = msg.s_header.s_payload_len;
+        char* message = (char*)malloc(sizeof(char) * sz + 1);
+        if (message == NULL) {
+          errcode = errno;
+          goto end;
+        }
+        message[sz] = 0;
+        memcpy(message, msg.s_payload, sz);
+        LOG_PIPE("%s\n", message);
+        free(message);
+        message = NULL;
+      }
+    }
+  }
+
 end:
   if (errcode != 0 && get_lid() == PARENT_ID)
     fprintf(stderr, "%s\n", strerror(errcode));
