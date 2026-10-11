@@ -8,8 +8,8 @@ static FILE* elogfd = NULL;
 static FILE* plogfd = NULL;
 
 int init_logger(void) {
-  elogfd = fopen(events_log, "rw");
-  plogfd = fopen(pipes_log, "rw");
+  elogfd = fopen(events_log, "w+");
+  plogfd = fopen(pipes_log, "w+");
 
   if (NULL == elogfd || NULL == plogfd)
     return errno;
