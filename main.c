@@ -30,6 +30,9 @@ int main(int argc, char* argv[]) {
   if ((errcode = init(processes)) != 0)
     goto end;
 
+  CL_PIPE();
+  CL_EVENT();
+
   register_pid(0, getpid());
   for (size_t i = 1; i <= processes; ++i) {
     int p = fork();

@@ -22,10 +22,6 @@ int init(int number_of_children) {
   int errcode = 0;
   processes = number_of_children + 1;
 
-  errcode = init_logger();
-  if (errcode)
-    goto end;
-
   pids = (int*)malloc(sizeof(*pids) * processes);
   if (NULL == pids) {
     errcode = errno;
@@ -122,9 +118,6 @@ void cleanup(void) {
     free(pipes);
     pipes = NULL;
   }
-
-  LOG_DBG("All good, destroying logger...\n");
-  destroy_logger();
 }
 
 int register_pid(local_id lid, int pid) {
