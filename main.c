@@ -141,6 +141,11 @@ int main(int argc, char* argv[]) {
         LOG_PIPE("%s\n", message);
         free(message);
         message = NULL;
+
+        if (j == 1)
+          wait(&errcode);
+        if (errcode)
+          goto end;
       }
     }
   }
