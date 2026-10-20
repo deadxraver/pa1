@@ -3,6 +3,7 @@
 #include "proc_logic.h"
 
 #include <fcntl.h>
+#include <sched.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -139,7 +140,7 @@ local_id get_lid(void) {
 int send(void* self, local_id dst, const Message* msg) {
   (void)self;
   int fd = pipes[lid_][dst].fd[1];
-  size_t sz =
+  ssize_t sz =
     sizeof(MessageHeader) + msg->s_header.s_payload_len;
 
   if (msg->s_header.s_magic != MESSAGE_MAGIC)
@@ -172,11 +173,13 @@ int send_multicast(void* self, const Message* msg) {
 int receive(void* self, local_id from, Message* msg) {
   (void)self;
   int fd = pipes[from][lid_].fd[0];
-  size_t sz = sizeof(MessageHeader);
+  ssize_t sz = sizeof(MessageHeader);
   ssize_t read_bytes;
 
   do {
     read_bytes = read(fd, &msg->s_header, sz);
+    if (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+      sched_yield();
   } while (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK));
   if (read_bytes < sz)
     return EIO;
@@ -203,11 +206,13 @@ int receive_any(void * self, Message * msg) {
     int fd = pipes[i][lid_].fd[0];
     if (fd < 0)
       continue;
-    size_t sz = sizeof(MessageHeader);
+    ssize_t sz = sizeof(MessageHeader);
     ssize_t read_bytes = read(fd, &msg->s_header, sz);
 
-    if (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK))
+    if (read_bytes < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      sched_yield();
       continue;
+    }
     if (read_bytes < 0)
       return errno;
 
