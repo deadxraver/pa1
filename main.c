@@ -70,6 +70,9 @@ int main(int argc, char* argv[]) {
       }
 
       LOG_EVENT(log_received_all_started_fmt, get_lid());
+
+      // 'useful' work
+
       LOG_EVENT(log_done_fmt, get_lid());
 
       snprintf(text, sizeof(text), log_done_fmt, get_lid());
@@ -119,8 +122,8 @@ int main(int argc, char* argv[]) {
   if (get_lid() == PARENT_ID) {
     Message msg;
     for (size_t j = 0; j < 2; ++j) {
-      for (size_t i = 0; i < processes; ++i) {
-        errcode = receive_any(NULL, &msg);
+      for (size_t i = 1; i <= processes; ++i) {
+        errcode = receive(NULL, (local_id)i, &msg);
         if (errcode)
           goto end;
 
