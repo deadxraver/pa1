@@ -3,7 +3,6 @@
 #include "proc_logic.h"
 
 #include <fcntl.h>
-#include <sched.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +12,8 @@
 #include <unistd.h>
 
 #include "logger.h"
+
+#define sched_yield() usleep(100)
 
 static int processes = 0;
 static int* pids = NULL;
