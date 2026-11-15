@@ -133,7 +133,12 @@ void init_proc(local_id lid, int account) {
   lid_ = lid;
   money = account;
   bh.s_id = lid;
-  bh.s_history_len = 0;
+  bh.s_history_len = 1;
+  bh.s_history[0] = (BalanceState) {
+    .s_balance = account,
+    .s_time = get_physical_time(),
+    .s_balance_pending_in = 0,
+  };
   LOG_EVENT(log_started_fmt, get_physical_time(), lid_, getpid(), getppid(), account);
 }
 
