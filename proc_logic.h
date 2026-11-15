@@ -1,6 +1,8 @@
 #ifndef __PROC_LOGIC_H
 #define __PROC_LOGIC_H
 
+#include <stdbool.h>
+
 #include "lib/ipc.h"
 #include "lib/banking.h"
 
@@ -18,6 +20,8 @@ void init_proc(local_id lid, int account);
 local_id get_lid(void);
 
 int get_money(void);
+
+bool add_money(int amount);
 
 void close_unused_pipes(local_id lid);
 

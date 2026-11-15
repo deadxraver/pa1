@@ -142,6 +142,13 @@ int get_money(void) {
   return money;
 }
 
+bool add_money(int amount) {
+  if (money + amount < 0)
+    return false;
+  money += amount;
+  return true;
+}
+
 // ipc.h
 
 int send(void* self, local_id dst, const Message* msg) {
