@@ -19,6 +19,8 @@ static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;
 static local_id lid_ = PARENT_ID;
+static int money;
+static BalanceHistory bh;
 
 int init(int number_of_children) {
   int errcode = 0;
@@ -127,13 +129,69 @@ int register_pid(local_id lid, int pid) {
   return 0;
 }
 
-void init_proc(local_id lid) {
+void init_proc(local_id lid, int account) {
   lid_ = lid;
-  LOG_EVENT(log_started_fmt, lid_, getpid(), getppid());
+  money = account;
+  bh.s_id = lid;
+  bh.s_history_len = 1;
+  bh.s_history[0] = (BalanceState) {
+    .s_balance = account,
+    .s_time = get_physical_time(),
+    .s_balance_pending_in = 0,
+  };
+  LOG_EVENT(log_started_fmt, get_physical_time(), lid_, getpid(), getppid(), account);
 }
 
 local_id get_lid(void) {
   return lid_;
+}
+
+int get_money(void) {
+  return money;
+}
+
+static void update_history(int amount, timestamp_t at) {
+  bh.s_history[at] =
+    (BalanceState){ .s_balance = amount, .s_time = at, .s_balance_pending_in = 0 };
+
+  if (bh.s_history_len < at) {
+    int fill_amount = bh.s_history[bh.s_history_len - 1].s_balance;
+    for (timestamp_t i = bh.s_history_len; i < at; ++i) {
+      bh.s_history[i] =
+        (BalanceState){
+          .s_balance = fill_amount,
+          .s_time = i,
+          .s_balance_pending_in = 0
+        };
+    }
+  }
+
+  bh.s_history_len = at + 1;
+}
+
+bool add_money(int amount) {
+  if (money + amount < 0)
+    return false;
+  money += amount;
+  update_history(money, get_physical_time());
+  return true;
+}
+
+void send_history(void) {
+  if (lid_ == PARENT_ID)
+    return;
+  timestamp_t now = get_physical_time();
+  update_history(money, now);
+  Message msg;
+  msg.s_header.s_magic = MESSAGE_MAGIC;
+  msg.s_header.s_payload_len =
+    sizeof(local_id) +
+    sizeof(uint8_t) +
+    bh.s_history_len * sizeof(BalanceState);
+  msg.s_header.s_type = BALANCE_HISTORY;
+  msg.s_header.s_local_time = get_physical_time();
+  memcpy(msg.s_payload, &bh, msg.s_header.s_payload_len);
+  send(NULL, PARENT_ID, &msg);
 }
 
 // ipc.h

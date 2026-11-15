@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #include "lib/common.h"
-#include "lib/pa1.h"
+#include "lib/pa2345.h"
 
 #ifdef DBG
 #define LOG_DBG(...) fprintf(stderr, __VA_ARGS__)
