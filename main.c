@@ -15,6 +15,8 @@
 
 static AllHistory ah;
 
+void print_history(const AllHistory* history);
+
 static void do_child_biz(void) {
   while (1) {
     Message msg;
@@ -247,7 +249,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // TODO: print history
+  print_history(&ah);
 
 end:
   if (errcode != 0 && get_lid() == PARENT_ID)
