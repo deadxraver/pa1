@@ -4,7 +4,7 @@ BUILD=out
 APP=app
 DBG_APP=dbg
 
-SOURCE=*.c
+SOURCE=*.c lib/*.c
 LD_LIBRARY_PATH=$(CURDIR)/$(BUILD)
 SO_DIR=$(CURDIR)/lib/lib64
 LD_PRELOAD=$(SO_DIR)/libruntime.so
