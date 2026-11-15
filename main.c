@@ -99,9 +99,9 @@ int main(int argc, char* argv[]) {
 
       // 'useful' work
 
-      LOG_EVENT(log_done_fmt, get_physical_time(), get_lid(), 0/* TODO: get actual value*/);
+      LOG_EVENT(log_done_fmt, get_physical_time(), get_lid(), get_money());
 
-      snprintf(text, sizeof(text), log_done_fmt, get_physical_time(), get_lid(), 0/* TODO: get actual value*/);
+      snprintf(text, sizeof(text), log_done_fmt, get_physical_time(), get_lid(), get_money());
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = DONE;

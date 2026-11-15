@@ -19,6 +19,7 @@ static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;
 static local_id lid_ = PARENT_ID;
+static int money;
 
 int init(int number_of_children) {
   int errcode = 0;
@@ -129,11 +130,16 @@ int register_pid(local_id lid, int pid) {
 
 void init_proc(local_id lid, int account) {
   lid_ = lid;
+  money = account;
   LOG_EVENT(log_started_fmt, get_physical_time(), lid_, getpid(), getppid(), account);
 }
 
 local_id get_lid(void) {
   return lid_;
+}
+
+int get_money(void) {
+  return money;
 }
 
 // ipc.h

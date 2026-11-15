@@ -17,6 +17,8 @@ void init_proc(local_id lid, int account);
 
 local_id get_lid(void);
 
+int get_money(void);
+
 void close_unused_pipes(local_id lid);
 
 #endif // !__PROC_LOGIC_H
