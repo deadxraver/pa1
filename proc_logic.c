@@ -15,6 +15,8 @@
 
 #define sched_yield() usleep(100)
 
+timestamp_t get_physical_time(void); // from runtime lib
+
 static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;
@@ -127,9 +129,9 @@ int register_pid(local_id lid, int pid) {
   return 0;
 }
 
-void init_proc(local_id lid) {
+void init_proc(local_id lid, int account) {
   lid_ = lid;
-  LOG_EVENT(log_started_fmt, lid_, getpid(), getppid());
+  LOG_EVENT(log_started_fmt, get_physical_time(), lid_, getpid(), getppid(), account);
 }
 
 local_id get_lid(void) {

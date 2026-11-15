@@ -11,6 +11,8 @@
 #include "proc_logic.h"
 #include "logger.h"
 
+timestamp_t get_physical_time(void); // from runtime lib
+
 int main(int argc, char* argv[]) {
   int processes;
   int errcode = 0;
@@ -61,10 +63,10 @@ int main(int argc, char* argv[]) {
     if (p == 0) {
       char text[128];
       Message msg;
-      init_proc((local_id)i);
+      init_proc((local_id)i, accounts[i - 1]);
       close_unused_pipes(get_lid());
       snprintf(text, sizeof(text), log_started_fmt,
-               get_lid(), getpid(), getppid());
+               get_physical_time(), get_lid(), getpid(), getppid(), accounts[i - 1]);
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = STARTED;
@@ -94,13 +96,13 @@ int main(int argc, char* argv[]) {
         message = NULL;
       }
 
-      LOG_EVENT(log_received_all_started_fmt, get_lid());
+      LOG_EVENT(log_received_all_started_fmt, get_physical_time(), get_lid());
 
       // 'useful' work
 
-      LOG_EVENT(log_done_fmt, get_lid());
+      LOG_EVENT(log_done_fmt, get_physical_time(), get_lid(), 0/* TODO: get actual value*/);
 
-      snprintf(text, sizeof(text), log_done_fmt, get_lid());
+      snprintf(text, sizeof(text), log_done_fmt, get_physical_time(), get_lid(), 0/* TODO: get actual value*/);
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = DONE;
@@ -130,7 +132,7 @@ int main(int argc, char* argv[]) {
         message = NULL;
       }
 
-      LOG_EVENT(log_received_all_done_fmt, get_lid());
+      LOG_EVENT(log_received_all_done_fmt, get_physical_time(), get_lid());
       goto end;
     }
     if (p < 0) {
