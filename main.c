@@ -15,16 +15,26 @@
 static void do_child_biz(void) {
   while (1) {
     Message msg;
-    receive(NULL, PARENT_ID, &msg);
+    receive_any(NULL, &msg);
     if (STOP == msg.s_header.s_type)
       return;
     if (TRANSFER != msg.s_header.s_type)
       continue;
     TransferOrder to = *(TransferOrder*)msg.s_payload;
-    (void)to;
-    // TODO:
-    // * get transfer orders
-    // * send ACK
+    if (get_lid() == to.s_src) {
+      add_money(-to.s_amount);
+      send(NULL, to.s_dst, &msg);
+    }
+    else if (get_lid() == to.s_dst) {
+      add_money(to.s_amount);
+      msg.s_header.s_payload_len = 0;
+      msg.s_header.s_type = ACK;
+      send(NULL, PARENT_ID, &msg);
+    }
+    else {
+      // mistake
+      continue;
+    }
   }
 }
 
