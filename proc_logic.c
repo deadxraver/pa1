@@ -152,7 +152,7 @@ static void update_history(int amount, timestamp_t at) {
   if (bh.s_history_len < at) {
     int fill_amount = bh.s_history[bh.s_history_len - 1].s_balance;
     for (timestamp_t i = bh.s_history_len; i < at; ++i) {
-      bh.s_history[at] =
+      bh.s_history[i] =
         (BalanceState){
           .s_balance = fill_amount,
           .s_time = i,
