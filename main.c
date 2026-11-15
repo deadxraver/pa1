@@ -14,8 +14,10 @@
 int main(int argc, char* argv[]) {
   int processes;
   int errcode = 0;
-  if (argc != 3 || strcmp("-p", argv[1]) || sscanf(argv[2], "%d", &processes) != 1) {
-    fprintf(stderr, "Wrong format, expected: %s -p <process count>\n", argv[0]);
+  int* accounts = NULL;
+
+  if (argc < 3 || strcmp("-p", argv[1]) || sscanf(argv[2], "%d", &processes) != 1) {
+    fprintf(stderr, "Wrong format, expected: %s -p <process count> { X... }\n", argv[0]);
     errcode = EINVAL;
     goto end;
   }
@@ -25,6 +27,26 @@ int main(int argc, char* argv[]) {
     processes = 0;
     errcode = EINVAL;
     goto end;
+  }
+  if (argc - 3 != processes) {
+    fprintf(stderr, "Expected %d accounts in args\n", processes);
+    errcode = EINVAL;
+    goto end;
+  }
+
+  accounts = (int*)malloc(processes * sizeof(int));
+  if (NULL == accounts) {
+    fprintf(stderr, "Failed to alloc mem for accounts array\n");
+    errcode = ENOMEM;
+    goto end;
+  }
+
+  for (size_t i = 0; i < processes; ++i) {
+    if (sscanf(argv[i + 3], "%d", accounts + i) != 1 || accounts[i] <= 0) {
+      fprintf(stderr, "Incorrect number format: %s\n", argv[i + 3]);
+      errcode = EINVAL;
+      goto end;
+    }
   }
 
   if ((errcode = init(processes)) != 0)
@@ -154,5 +176,10 @@ end:
   if (errcode != 0 && get_lid() == PARENT_ID)
     fprintf(stderr, "%s\n", strerror(errcode));
   cleanup();
+
+  if (accounts != NULL)
+    free(accounts);
+  accounts = NULL;
+
   return errcode;
 }
