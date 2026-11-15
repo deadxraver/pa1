@@ -18,11 +18,11 @@ all: build
 
 build: $(SOURCE)
 	mkdir -p $(BUILD)
-	$(CC) $(CARGS) *.c -o $(BUILD)/$(APP)
+	$(CC) $(CARGS) $(SOURCE) -o $(BUILD)/$(APP)
 
 build-dbg: $(SOURCE)
 	mkdir -p $(BUILD)
-	$(CC) -DDBG $(CARGS) *.c -o $(BUILD)/$(DBG_APP)
+	$(CC) -DDBG $(CARGS) $(SOURCE) -o $(BUILD)/$(DBG_APP)
 
 clean:
 	rm -rf *.out $(BUILD) *.log
