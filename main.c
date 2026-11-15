@@ -64,11 +64,12 @@ int main(int argc, char* argv[]) {
       Message msg;
       init_proc((local_id)i, accounts[i - 1]);
       close_unused_pipes(get_lid());
-      snprintf(text, sizeof(text), log_started_fmt,
-               get_physical_time(), get_lid(), getpid(), getppid(), accounts[i - 1]);
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = STARTED;
+      msg.s_header.s_local_time = get_physical_time();
+      snprintf(text, sizeof(text), log_started_fmt,
+               msg.s_header.s_local_time, get_lid(), getpid(), getppid(), accounts[i - 1]);
       memcpy(msg.s_payload, text, msg.s_header.s_payload_len);
       errcode = send_multicast(NULL, &msg);
       if (errcode)
@@ -99,13 +100,13 @@ int main(int argc, char* argv[]) {
 
       // 'useful' work
 
-      LOG_EVENT(log_done_fmt, get_physical_time(), get_lid(), get_money());
-
-      snprintf(text, sizeof(text), log_done_fmt, get_physical_time(), get_lid(), get_money());
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
       msg.s_header.s_type = DONE;
+      msg.s_header.s_local_time = get_physical_time();
       memcpy(msg.s_payload, text, msg.s_header.s_payload_len);
+      snprintf(text, sizeof(text), log_done_fmt, msg.s_header.s_local_time, get_lid(), get_money());
+      LOG_EVENT(log_done_fmt, msg.s_header.s_local_time, get_lid(), get_money());
       errcode = send_multicast(NULL, &msg);
       if (errcode)
         goto end;
