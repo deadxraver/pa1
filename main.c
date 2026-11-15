@@ -13,6 +13,8 @@
 #include "proc_logic.h"
 #include "logger.h"
 
+static AllHistory ah;
+
 static void do_child_biz(void) {
   while (1) {
     Message msg;
@@ -83,6 +85,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  ah.s_history_len = processes;
+
   if ((errcode = init(processes)) != 0)
     goto end;
 
@@ -132,6 +136,7 @@ int main(int argc, char* argv[]) {
       LOG_EVENT(log_received_all_started_fmt, get_physical_time(), get_lid());
 
       do_child_biz();
+      send_history();
 
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_type = DONE;
@@ -215,6 +220,13 @@ int main(int argc, char* argv[]) {
       if (errcode)
         goto end;
 
+      assert(BALANCE_HISTORY == msg.s_header.s_type);
+      memcpy(&ah.s_history[i - 1], msg.s_payload, msg.s_header.s_payload_len);
+
+      errcode = receive(NULL, (local_id)i, &msg);
+      if (errcode)
+        goto end;
+
       assert(DONE == msg.s_header.s_type);
 
       size_t sz = msg.s_header.s_payload_len;
@@ -234,6 +246,8 @@ int main(int argc, char* argv[]) {
         goto end;
     }
   }
+
+  // TODO: print history
 
 end:
   if (errcode != 0 && get_lid() == PARENT_ID)

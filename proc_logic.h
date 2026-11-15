@@ -23,6 +23,8 @@ int get_money(void);
 
 bool add_money(int amount);
 
+void send_history(void);
+
 void close_unused_pipes(local_id lid);
 
 #endif // !__PROC_LOGIC_H
