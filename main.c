@@ -8,10 +8,9 @@
 #include <time.h>
 
 #include "lib/pa2345.h"
+#include "lib/banking.h"
 #include "proc_logic.h"
 #include "logger.h"
-
-timestamp_t get_physical_time(void); // from runtime lib
 
 int main(int argc, char* argv[]) {
   int processes;

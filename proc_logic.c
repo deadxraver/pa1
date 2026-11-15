@@ -15,8 +15,6 @@
 
 #define sched_yield() usleep(100)
 
-timestamp_t get_physical_time(void); // from runtime lib
-
 static int processes = 0;
 static int* pids = NULL;
 static struct fd_pair** pipes = NULL;

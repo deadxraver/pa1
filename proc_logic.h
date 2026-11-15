@@ -2,6 +2,7 @@
 #define __PROC_LOGIC_H
 
 #include "lib/ipc.h"
+#include "lib/banking.h"
 
 struct fd_pair {
   int fd[2];
