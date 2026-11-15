@@ -180,6 +180,8 @@ bool add_money(int amount) {
 void send_history(void) {
   if (lid_ == PARENT_ID)
     return;
+  timestamp_t now = get_physical_time();
+  update_history(money, now);
   Message msg;
   msg.s_header.s_magic = MESSAGE_MAGIC;
   msg.s_header.s_payload_len =
