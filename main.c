@@ -12,6 +12,22 @@
 #include "proc_logic.h"
 #include "logger.h"
 
+static void do_child_biz(void) {
+  while (1) {
+    Message msg;
+    receive(NULL, PARENT_ID, &msg);
+    if (STOP == msg.s_header.s_type)
+      return;
+    if (TRANSFER != msg.s_header.s_type)
+      continue;
+    TransferOrder to = *(TransferOrder*)msg.s_payload;
+    (void)to;
+    // TODO:
+    // * get transfer orders
+    // * send ACK
+  }
+}
+
 int main(int argc, char* argv[]) {
   int processes;
   int errcode = 0;
@@ -98,7 +114,7 @@ int main(int argc, char* argv[]) {
 
       LOG_EVENT(log_received_all_started_fmt, get_physical_time(), get_lid());
 
-      // 'useful' work
+      do_child_biz();
 
       msg.s_header.s_magic = MESSAGE_MAGIC;
       msg.s_header.s_payload_len = strlen(text);
@@ -145,6 +161,13 @@ int main(int argc, char* argv[]) {
   }
 
   close_unused_pipes(PARENT_ID);
+
+  bank_robbery(NULL, processes);
+  Message msg;
+  msg.s_header.s_magic = MESSAGE_MAGIC;
+  msg.s_header.s_type = STOP;
+  msg.s_header.s_local_time = get_physical_time();
+  send_multicast(NULL, &msg);
 
   if (get_lid() == PARENT_ID) {
     Message msg;
